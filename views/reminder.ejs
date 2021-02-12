@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v4.1.1">
+	<title>Set Reminder</title>
+	
+	<link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/navbar-static/">
+	
+	 <!-- Bootstrap core CSS -->
+	<link href="assets\dist\css\bootstrap.min.css" rel="stylesheet">
+	<style>
+
+       body {
+		background-image: url('https://clipart.coolclips.com/480/vectors/tf05231/CoolClips_vc029958.png');
+		background-repeat:no-repeat;
+		background-size:50%;
+		background-position:center-left;
+		}
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js" integrity="sha512-DZqqY3PiOvTP9HkjIWgjO6ouCbq+dxqWoJZ/Q+zPYNHmlnI2dQnbJ5bxAHpAMw+LXRm4D72EIRXzvcHQtE8/VQ==" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/react@16/umd/react.development.js"> </script>
+	<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"> </script>
+	<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+
+	  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	  </button>
+	  <div class="collapse navbar-collapse" id="navbarCollapse">
+		<ul class="navbar-nav mr-auto">
+		  <li class="nav-item ">
+			<a class="nav-link" href="/main">Home <span class="sr-only">(current)</span></a>
+		  </li>
+		  <li class="nav-item">
+			<a class="nav-link" href="/review">Review Page</a>
+		  </li>
+		  <li class="nav-item active">
+			<a class="nav-link" href="#reminder">Set Reminder</a>
+		  </li>
+		  <li class="nav-item">
+			<a class="nav-link" href="/logout">Logout</a>
+		  </li>
+		</ul>
+		
+	  </div>
+	</nav>
+
+	
+	<script type="text/babel">
+		class Reminder extends React.Component{
+			constructor(){
+				super();
+				this.save = this.save.bind(this);
+				this.state = {
+				"reminders": [],
+				"Event": '',
+				"date": ''
+				};
+			  }
+			myChangeHandler = (event) => {
+				let nam = event.target.name;
+				let val = event.target.value;
+				this.setState({[nam]: val});
+			}
+			componentDidMount() {
+				axios.get("http://localhost:3000/getremind")
+				.then((response) => {
+					this.setState({reminders : response.data.reminders});
+				})
+				.catch(() => {
+					console.log("Failed to retrieve data");
+				});
+			}
+			save(){
+				if (this.state.Event == '' || this.state.date == ''){
+					alert("Please fill in the details");
+				}
+				else{
+				let arr = this.state.reminders;
+				arr.push({
+					"Event" : this.state.Event,
+					"date" : this.state.date
+				});
+				this.setState({reminders : arr});
+				axios.post('http://localhost:3000/remind',{reminders:this.state.reminders})
+				.then(function (response) {
+					console.log(response);
+				}).catch((res) => {
+					console.log("error");
+				});
+				alert("Your reminder has been set!");
+				}
+			}
+			render() {
+				return (
+				  <div style={{"textAlign":"center"}}>
+				  <br/><br/><br/><br/><br/><br/><br/>
+				  <h1>Set a Reminder!</h1>
+				  <h3>Event:</h3>
+				  <input
+					type='text'
+					name='Event'
+					onChange={this.myChangeHandler}
+					required
+				  />
+				  <br/><br/>
+				  <h3>Time:</h3>
+				  <input
+					type='datetime-local'
+					name='date'
+					onChange={this.myChangeHandler}
+					required
+				  />
+				  <br/><br/>
+				  <h3>Description:</h3>
+				  <textarea
+					type='text'
+					name='description'
+					required
+				  ></textarea>
+				  <br/><br/>
+				  <input 
+				  type="submit"
+				  value="submit"
+				  onClick = {this.save}
+				  />
+				  </div>
+			);
+		}
+		}
+		
+	ReactDOM.render(<Reminder/>,document.getElementById('reminder'));
+	</script>
+	
+	<div id="reminder">
+	</div>
+</body>
+</html>

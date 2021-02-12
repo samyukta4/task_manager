@@ -1,0 +1,438 @@
+ <html>
+ <head>
+ <title>Home</title>
+ <link href="http://fonts.googleapis.com/css?family=Reenie+Beanie:regular" rel="stylesheet" type="text/css">
+ <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous"> 
+ <link href="assets\dist\css\bootstrap.min.css" rel="stylesheet">
+ <style>
+body,div.board{
+  font-family:arial,sans-serif;
+  font-size:100%;
+  margin:3em;
+  background:#666;
+  color:#fff;
+}
+div.note{
+  text-decoration:none;
+  color:black;
+  display:block;
+  background-color:lightblue;
+  height:18em;
+  width:18em;
+  padding:1em;
+  -webkit-box-shadow: 7px 7px 10px rgba(33,33,33,.7);
+  -webkit-transition:-webkit-transform .15s linear;
+  margin:1em;
+  float:left;
+}
+div.note p{
+  font-family:"Reenie Beanie";
+  font-size:180%;
+}
+ 
+div.note:focus{
+  -webkit-box-shadow: 10px 10px 7px rgba(0,0,0,.7);
+  -webkit-transform: scale(1.25);
+  position:relative;
+  z-index:5;
+} 
+button {
+	font-family:"Reenie Beanie";
+	cursor: pointer;
+	color:black;
+	font-weight:500;
+	font-size: 35px;
+	background-color: transparent;
+	border:none;
+	height: 2em;
+	width: 4em;
+	position: relative;
+	bottom:2px;
+}
+button:focus{
+	outline:0;
+}
+#name{
+background-color: lightgrey;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js" integrity="sha512-DZqqY3PiOvTP9HkjIWgjO6ouCbq+dxqWoJZ/Q+zPYNHmlnI2dQnbJ5bxAHpAMw+LXRm4D72EIRXzvcHQtE8/VQ==" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://unpkg.com/react@16/umd/react.development.js"> </script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"> </script>
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+ </head>
+ 
+ <body>
+ <script type="text/babel">
+  class Note extends React.Component{
+    constructor(props){
+        super(props);
+        this.addTask = this.addTask.bind(this);
+		this.deleteTask = this.deleteTask.bind(this);
+        this.edit = this.edit.bind(this);
+        this.remove = this.remove.bind(this);
+        this.save = this.save.bind(this);
+		this.setcolor = this.setcolor.bind(this);
+        this.renderDisplay = this.renderDisplay.bind(this);
+        this.renderForm = this.renderForm.bind(this);
+		this.change = this.change.bind(this);
+		this.renderColor = this.renderColor.bind(this);
+		this.highlighted = this.highlighted.bind(this);
+		this.markCompleted = this.markCompleted.bind(this);
+        this.state = {
+            editing : false,
+			colorChange : false
+        };
+    }
+	
+    //Event methods
+    componentWillMount()
+    {	
+        this.style = {
+			right : this.randomBetween(0, window.innerWidth-150) + 'px',
+            top : this.randomBetween(0, window.innerHeight - 150) + 'px',
+            transform : 'rotate( ' + this.randomBetween(-15, 15) + 'deg)'
+        };                           
+    }
+	 randomBetween(min, max)
+    {
+        return (min + Math.ceil(Math.random() * max));
+	}
+    edit()
+    {
+      this.setState({editing : true});
+    }
+    save()
+    {
+        this.props.onChange(this.main, this.tasks, this.highlight, this.completed ,this.props.index);
+        this.setState({editing : false});
+    }
+    remove()
+    {
+        this.props.onRemove(this.props.index);
+    }
+    changeHandler(e) 
+    {
+        if (e.target.id === 'head') 
+            this.main = e.target.value;
+        else {
+            this.tasks[e.target.id] = e.target.value;
+        }
+    }
+    addTask()
+	{
+        if (this.tasks.length < 3) 
+        {
+            this.tasks.push("new task");
+			this.completed[this.tasks.length-1] = "none";
+            this.save();
+        }
+    }
+	highlighted(taskIdx)
+	{	
+		if(this.highlight[taskIdx] == "yellow"){
+			this.highlight[taskIdx] = this.props.color;
+		}
+		else{
+			this.highlight[taskIdx] = "yellow";
+		}
+		if (this.completed[taskIdx] == "line-through")
+			this.completed[taskIdx] = "line-through";
+		this.save();
+	}
+	markCompleted(taskIdx)
+	{
+		this.completed[taskIdx] = "line-through";
+		this.save();
+	}
+	deleteTask(taskIdx) {
+        this.props.deleteTask(this.props.index, taskIdx);
+    }
+    renderDisplay()
+    {
+        let tasks = this.props.tasks.map((task, i)=> {
+            return (<div style={{"background":this.highlight[i],"textDecoration":this.completed[i]}} id="a" onClick={()=>{this.highlighted(i)}}>
+			*{task}
+			</div>);
+        });
+     return (
+         <div ref={(c) => this._input = c} className='note' style = {this.style}> 
+            <p>{this.props.main}
+                {tasks}</p>
+                <span>
+    
+		 <i onClick= {()=>{this.edit()}} class="fa fa-pencil-square-o fa-lg fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;
+         <i onClick= {()=>{this.remove()}} class="fa fa-trash-o fa-lg fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;
+		 <i onClick= {()=>{this.change()}} class="fa fa-paint-brush fa-lg fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;
+		 </span>
+            
+        </div>
+     );   
+    }
+    renderForm()
+    {
+        let tasks = this.props.tasks.map((task, i)=> {
+            return (<div>
+					<textarea id={i} onChange={(e)=>this.changeHandler(e)} defaultValue={task} className='form-control' style={{"width":"160px","height":"40px"}}></textarea>
+					<i onClick={()=>{this.markCompleted(i)}} class="fa fa-check fa-xs" aria-hidden="true"></i>&nbsp;
+					<i onClick={()=>{this.deleteTask(i)}} class="fa fa-trash fa-xs" aria-hidden="true"></i>
+					</div>);
+					
+        });
+        
+     return(
+        <div ref="myNote" className='note' style = {this.style} >
+            <textarea id="head" onChange={(e)=>this.changeHandler(e)} defaultValue={this.props.main} className='form-control' style={{"width":"160px","height":"40px"}}></textarea>
+            {tasks}
+            <i onClick= {()=>{this.addTask()}} class="fa fa-plus fa-lg fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;
+            <i onClick= {()=>{this.save()}} class="fa fa-thumbs-o-up fa-lg fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;
+			
+        </div>
+     );   
+    }
+     
+  change(){
+    this.setState({colorChange: true});
+  }
+  setcolor()
+	{
+        if (this.bgcolor.value.length === 0)
+            this.props.changeColor(this.props.color, this.props.index);
+
+        else
+            this.props.changeColor(this.bgcolor.value, this.props.index);
+  }
+    renderColor(){
+	return (
+		<div className='note' id='note' style={this.style}>
+			<input ref={(element) => this.bgcolor = element} placeholder="Note color" id="color"></input>
+			<br/><br/>
+			<i onClick= {()=>{this.setcolor()}} class="fa fa-thumbs-o-up fa-lg fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;
+		</div>
+	);}
+	
+    render()
+    {   
+        this.tasks = [...this.props.tasks];
+        this.main = this.props.main;
+		this.highlight = [...this.props.highlight];
+		this.completed = [...this.props.completed];
+        let newStyle = {...this.style};
+        newStyle.backgroundColor=this.props.color;
+        this.style = newStyle;
+        
+        if(this.state.editing)
+            {
+                return this.renderForm();
+            }
+		if(this.state.colorChange){
+				return this.renderColor();
+			}
+        else
+        {
+            return this.renderDisplay();
+        }
+    };
+    
+}
+
+class Board extends React.Component
+{
+    constructor()
+    {
+        super();
+        this.saveToDB = this.saveToDB.bind(this);
+		this.deleteTask = this.deleteTask.bind(this);   
+        this.changeColor = this.changeColor.bind(this);
+        this.changeHandler = this.changeHandler.bind(this);
+        this.eachNote = this.eachNote.bind(this);
+        this.removePostIt = this.removePostIt.bind(this);
+        this.add = this.add.bind(this);
+        this.state = {
+            "post_its" : [],
+			"review_post_its" : []
+        }
+    }
+    
+    nextId()
+    {
+        this.uniqueId = this.uniqueId || 0;
+        return this.uniqueId++;
+    }
+    
+    changeHandler(head, tasks, highlight, completed, i)
+    {   
+        let arr = this.state.post_its;
+      	arr[i].main = head;
+        arr[i].tasks = [...tasks];
+		arr[i].highlight = [...highlight];
+		arr[i].completed = [...completed];
+        this.setState({post_its : arr});
+		
+		var note = arr[i].completed;
+		let notes = this.state.review_post_its;
+		
+		var res = note.filter(function(a){
+			return a=="line-through";
+		});
+		
+		if(res.length == note.length && note.length!=0){
+			notes.push({
+				"name": arr[i].main,
+				"tasks": arr[i].tasks
+			});
+			this.setState({review_post_its : notes});	
+			this.removePostIt(i);
+		
+		}
+	}
+  	changeColor(color, idx)
+  	{
+  		let arr = this.state.post_its;
+      	arr[idx].color = color;
+      	this.setState({post_its : arr});
+    }
+	deleteTask(idx, taskIdx)
+    {
+        let arr = this.state.post_its;
+        arr[idx].tasks.splice(taskIdx, 1);
+		arr[idx].completed.splice(taskIdx,1);
+		arr[idx].highlight.splice(taskIdx,1);
+        this.setState({post_its : arr});
+    }
+    eachNote(element, i)
+    {
+        let tasks, color, highlight, completed;
+        tasks = this.state.post_its[i].tasks;
+      	color = this.state.post_its[i].color;  
+		highlight = this.state.post_its[i].highlight;
+		completed = this.state.post_its[i].completed;
+      
+        return (
+             <Note key={this.nextId()}
+                    index={i} 
+            onChange={this.changeHandler}
+            changeColor={this.changeColor}
+            onRemove={this.removePostIt}
+			deleteTask={this.deleteTask}
+            main={element}
+            tasks={tasks}
+            color={color}
+			highlight={highlight}
+			completed={completed}></Note>
+        );
+    }
+    
+    removePostIt(index)
+    {
+        var arr = this.state.post_its;
+        var elm = arr[index];
+        arr.splice(index, 1);
+        this.setState({post_its : arr});
+		return elm;
+    }
+	
+    add(text)
+    {  
+		var colors = [ 
+                '#90EE90','#DDA0DD','#FFF0F5','#FFFF99','lightblue'
+            ]; 
+        var random_color = colors[Math.round(Math.random() * colors.length)]; 
+        var arr = this.state.post_its;
+        arr.push({
+                    "main" : text,
+                    "tasks" : [],
+          			"color" : random_color,
+					"highlight" : [],
+					"completed" : []
+                 });
+        
+        this.setState({post_its : arr});
+    }
+
+    componentDidMount() {
+        axios.get("http://localhost:3000/load")
+        .then((response) => {
+            this.setState({post_its : response.data.state.post_its});
+			this.setState({review_post_its : response.data.state.review_post_its});
+        })
+        .catch(() => {
+            console.log("Failed to retrieve data");
+        });
+    }
+    saveToDB() {
+        const obj = {state:this.state};
+
+        axios.post('http://localhost:3000/save', obj)
+        .then(function (response) {
+            console.log(response);
+        }).catch((res) => {
+            console.log("error");
+        });
+    }
+    
+    render()
+    {
+        let i, mainHeadings=[];
+        for (i=0;i<this.state.post_its.length;i++)
+            mainHeadings.push(this.state.post_its[i].main);
+        return(
+          <div>
+			<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+			  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			  </button>
+			  <div class="collapse navbar-collapse" id="navbarCollapse">
+				<ul class="navbar-nav mr-auto">
+				  <li class="nav-item active ">
+					<a class="nav-link active" href="#main" onClick={this.saveToDB}>Home <span class="sr-only">(current)</span></a>
+				  </li>
+				  <li class="nav-item">
+					<a class="nav-link" href="/review" onClick={this.saveToDB}>Review Page</a>
+				  </li>
+				  <li class="nav-item ">
+					<a class="nav-link" href="/reminder" onClick={this.saveToDB}>Set Reminder</a>
+				  </li>
+				  <li class="nav-item">
+					<a class="nav-link" href="/logout" onClick={this.saveToDB}>Logout</a>
+				  </li>
+				</ul>
+			  </div>
+			</nav>
+			<br/><br/>
+            {mainHeadings.map(this.eachNote)}
+		  <button className='add' onClick={this.add.bind(null,"New Note!")}>+ Create</button>  
+        </div>
+        );
+    }
+}
+
+
+Board.propTypes = {
+    count : function(props, propName)
+    {
+        
+        if(typeof props[propName] !== "number")
+        {
+            return new Error('THe count property must be a number');
+            
+        }
+        
+        if(props[propName] > 100)
+        {    
+            return new Error('Creating '+props[propName] + 'notes is ridiculous ')
+        }
+    }
+    
+};
+
+ReactDOM.render(
+                <Board count={50}></Board>
+                , document.getElementById('notes'));
+ </script>
+ 
+<div id="notes">
+</div>
+</body>
+</html>

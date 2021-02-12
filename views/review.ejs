@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v4.1.1">
+    <title>Review</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/navbar-static/">
+
+    <!-- Bootstrap core CSS -->
+<link href="assets\dist\css\bootstrap.min.css" rel="stylesheet">
+
+<style>
+#title{
+	text-align: center;
+}
+#post_its{
+	text-align: center;
+	width:75%;
+	border-collapse: collapse;
+	margin: auto;
+	font-size: 18px;
+}
+       body{
+		font-size:100%;
+		background:#666;
+		color:#fff;
+	}
+
+
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js" integrity="sha512-DZqqY3PiOvTP9HkjIWgjO6ouCbq+dxqWoJZ/Q+zPYNHmlnI2dQnbJ5bxAHpAMw+LXRm4D72EIRXzvcHQtE8/VQ==" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@16/umd/react.development.js"> </script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"> </script>
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item ">
+        <a class="nav-link" href="/main">Home <span class="sr-only">(current)</span></a>
+      </li>      
+      <li class="nav-item active ">
+        <a class="nav-link" href="#review">Review Page</a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" href="/reminder">Set Reminder</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<script type="text/babel">
+class Table extends React.Component{	
+	constructor(){
+		super();
+		this.renderTableData = this.renderTableData.bind(this);
+		this.renderTableHeader = this.renderTableHeader.bind(this);
+		this.state = {
+			"review_post_its": [{"name":"","tasks":[]}]
+		}
+	}
+	renderTableData()
+	{
+		return this.state.review_post_its.map((note,i)=>{
+			const {name,tasks} = note;
+			return (
+				<tbody>
+				<tr>
+					<td rowSpan="3">{name}</td>
+					<td>{tasks[0]}</td>
+				</tr>
+				<tr>
+					<td>{tasks[1]}</td>
+				</tr>
+				<tr>
+					<td>{tasks[2]}</td>
+				</tr>
+				</tbody>
+			);
+		});
+	}
+	componentDidMount() {
+        axios.get("http://localhost:3000/table")
+        .then((response) => {
+            this.setState({review_post_its : response.data.state.review_post_its});
+        })
+        .catch(() => {
+            console.log("Failed to retrieve data");
+        });
+    }
+	renderTableHeader()
+	{
+			let header = Object.keys(this.state.review_post_its[0])
+		return header.map((key,i)=>{
+			return <th key={i}>{key.toUpperCase()}</th>;
+		});
+	}
+	render()
+	{
+		return(
+			<div>
+				<h1 id='title'>Completed Tasks</h1>
+				<br/><br/>
+				<table className="table table-dark table-bordered table-hover" id="post_its">
+					<thead>
+						<tr>{this.renderTableHeader()}</tr>
+					</thead>
+						{this.renderTableData()}
+				</table>
+			</div>
+		);
+	}
+}
+
+ReactDOM.render(<Table/>,document.getElementById('table'));
+</script>
+ 
+<div id="table">
+</div>
+</body>
+</html>
